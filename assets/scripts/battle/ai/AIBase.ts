@@ -16,22 +16,32 @@ export class StraightAI extends AIBase {
 export class SineAI extends AIBase {
   private amplitude: number;
   private frequency: number;
-  private baseX: number;
+  private baseX = 0;
+  private initialized = false;
 
   constructor(amplitude = 120, frequencyHz = 1) {
     super();
     this.amplitude = amplitude;
     this.frequency = frequencyHz;
-    this.baseX = 0;
   }
 
   update(dt: number, enemy: Enemy): void {
-    if (this.age === 0) this.baseX = enemy.node.position.x;
+    if (!this.initialized) {
+      // Pull baseX away from edges so the full sine arc stays inside the field.
+      const halfField = enemy.bounds.right - 50; // bounds.right has 50 padding outside the visible area
+      const safeMax = Math.max(0, halfField - enemy.radius - this.amplitude);
+      this.baseX = clamp(enemy.node.position.x, -safeMax, safeMax);
+      this.initialized = true;
+    }
     this.age += dt;
     const offset = Math.sin(this.age * Math.PI * 2 * this.frequency) * this.amplitude;
     const p = enemy.node.position;
     enemy.node.setPosition(this.baseX + offset, p.y - enemy.config.speed * dt, 0);
   }
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v));
 }
 
 export class TrackerAI extends AIBase {
@@ -70,12 +80,13 @@ export class BossAI extends AIBase {
       return;
     }
     const speed = enemy.config.speed * 0.6;
+    const limit = enemy.bounds.right - 50 - enemy.radius - 20;
     let nx = p.x + this.dir * speed * dt;
-    if (nx > 220) {
-      nx = 220;
+    if (nx > limit) {
+      nx = limit;
       this.dir = -1;
-    } else if (nx < -220) {
-      nx = -220;
+    } else if (nx < -limit) {
+      nx = -limit;
       this.dir = 1;
     }
     enemy.node.setPosition(nx, this.targetY, 0);

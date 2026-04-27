@@ -19,8 +19,7 @@ export class Enemy extends Component implements IDamageable, IPoolable {
   hp = 1;
   ai!: AIBase;
   fireCooldown = 0;
-
-  private bounds!: PlayfieldBounds;
+  bounds!: PlayfieldBounds;
 
   configure(cfg: EnemyConfig, bounds: PlayfieldBounds, ai: AIBase): void {
     this.config = cfg;
@@ -41,7 +40,20 @@ export class Enemy extends Component implements IDamageable, IPoolable {
   tick(dt: number, target: Vec2): { fire: boolean } {
     if (!this.alive) return { fire: false };
     this.ai.update(dt, this, target);
-    const p = this.node.position;
+    let p = this.node.position;
+
+    // Clamp horizontally so enemies never exit the visible field sideways.
+    // (Vertical exit is allowed — they're supposed to fly off the bottom.)
+    const minX = this.bounds.left + this.radius + 50; // bounds left already has 50 padding; pull back inside
+    const maxX = this.bounds.right - this.radius - 50;
+    if (p.x < minX) {
+      this.node.setPosition(minX, p.y, p.z);
+      p = this.node.position;
+    } else if (p.x > maxX) {
+      this.node.setPosition(maxX, p.y, p.z);
+      p = this.node.position;
+    }
+
     this.position.set(p.x, p.y);
     if (isOutside(p.x, p.y, this.bounds)) {
       this.alive = false;
