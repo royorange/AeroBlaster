@@ -41,7 +41,11 @@ export class BattleManager extends Component {
       return;
     }
     const ut = this.playfield.getComponent(UITransform)!;
-    this.bounds = makeBounds(ut.contentSize.width, ut.contentSize.height, 50);
+    // Bounds: enemies/bullets only despawn when offscreen, keep generous padding.
+    // Spawn area is intentionally tighter (no padding) so enemies enter fully visible.
+    const w = ut.contentSize.width;
+    const h = ut.contentSize.height;
+    this.bounds = makeBounds(w, h, 50);
     this.rng = new Random(seed);
     this.playerStats = cloneStats(stats);
     this.stage = stage;
@@ -52,12 +56,7 @@ export class BattleManager extends Component {
 
     this.cleanup();
     this.spawnPlayer();
-    this.spawn = new SpawnSystem(
-      stage,
-      this.rng,
-      ut.contentSize.width / 2,
-      ut.contentSize.height / 2,
-    );
+    this.spawn = new SpawnSystem(stage, this.rng, w / 2, h / 2);
     this.bindInput();
     this.running = true;
     GlobalEvents.emit(GameEvent.BattleStart, { stageId: stage.id });
@@ -66,6 +65,31 @@ export class BattleManager extends Component {
   stopRun(): void {
     this.running = false;
     this.unbindInput();
+  }
+
+  /**
+   * Resume after revive: keep stage progress (elapsed, score, coins, spawn state)
+   * but clear hostile entities and re-arm the player. Player should already be revived.
+   */
+  resumeAfterRevive(invulnSeconds = 1.5): void {
+    if (!this.player) return;
+    this.clearHostiles();
+    this.result = null;
+    this.running = true;
+    this.bindInput();
+    this.player.setInvulnerable(invulnSeconds);
+    GlobalEvents.emit(GameEvent.BattleStart, { stageId: this.stage.id, resumed: true });
+  }
+
+  private clearHostiles(): void {
+    for (const e of this.enemies) {
+      if (e.config.isBoss) continue; // boss stays
+      e.alive = false;
+    }
+    for (const b of this.bullets) {
+      if (b.ownerFaction === Faction.Enemy) b.alive = false;
+    }
+    this.cullDead();
   }
 
   protected update(dt: number): void {

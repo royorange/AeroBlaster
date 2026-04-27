@@ -22,6 +22,9 @@ export class Player extends Component implements IDamageable {
   private dragOffset = new Vec3();
   private dragging = false;
 
+  private invulnRemain = 0;
+  private blinkAccum = 0;
+
   init(bounds: PlayfieldBounds, stats: PlayerStats): void {
     this.bounds = bounds;
     this.stats = cloneStats(stats);
@@ -58,7 +61,7 @@ export class Player extends Component implements IDamageable {
   }
 
   takeDamage(amount: number): void {
-    if (!this.alive) return;
+    if (!this.alive || this.invulnRemain > 0) return;
     this.stats.hp = Math.max(0, this.stats.hp - amount);
     if (this.stats.hp <= 0) {
       this.alive = false;
@@ -73,12 +76,34 @@ export class Player extends Component implements IDamageable {
     this.node.active = true;
   }
 
+  setInvulnerable(seconds: number): void {
+    this.invulnRemain = Math.max(this.invulnRemain, seconds);
+  }
+
+  isInvulnerable(): boolean {
+    return this.invulnRemain > 0;
+  }
+
   tick(dt: number, fireCb: (origin: Vec2) => void): void {
     if (!this.alive) return;
 
     // Position is updated synchronously by dragTo; tick only handles firing & sync.
     this.clampToBounds();
     this.syncPosition();
+
+    if (this.invulnRemain > 0) {
+      this.invulnRemain -= dt;
+      this.blinkAccum += dt;
+      if (this.blinkAccum >= 0.1) {
+        this.blinkAccum = 0;
+        this.node.active = !this.node.active;
+      }
+      if (this.invulnRemain <= 0) {
+        this.invulnRemain = 0;
+        this.blinkAccum = 0;
+        this.node.active = true;
+      }
+    }
 
     this.fireCooldown -= dt;
     if (this.fireCooldown <= 0) {

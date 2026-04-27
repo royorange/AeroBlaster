@@ -108,11 +108,12 @@ export class BattleSceneController extends Component {
           AnalyticsService.getInstance().track({ name: 'ad_shown', slot: 'revive', success: ok });
           if (ok) {
             RunManager.getInstance().consumeRevive();
-            const player = this.battle!.getPlayer();
-            player.revive(0.5);
-            const stage = RunManager.getInstance().getCurrentStage();
-            this.battle!.startRun(stage, RunManager.getInstance().getStats());
-            AnalyticsService.getInstance().track({ name: 'revive_used', stageId: stage.id });
+            this.battle!.getPlayer().revive(0.5);
+            this.battle!.resumeAfterRevive(2);
+            AnalyticsService.getInstance().track({
+              name: 'revive_used',
+              stageId: payload.stageId,
+            });
           } else {
             this.finishRun(payload);
           }

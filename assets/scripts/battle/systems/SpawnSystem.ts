@@ -49,7 +49,8 @@ export class SpawnSystem {
     const cfg = ConfigService.getInstance().enemy(enemyId);
     if (!cfg) return null;
 
-    const x = this.rng.range(-this.playfieldHalfWidth + cfg.radius, this.playfieldHalfWidth - cfg.radius);
+    const margin = cfg.radius + 12; // keep clearly inside the visible field
+    const x = this.rng.range(-this.playfieldHalfWidth + margin, this.playfieldHalfWidth - margin);
     return { cfg, x, topY: this.playfieldTop };
   }
 
