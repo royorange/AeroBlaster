@@ -1,0 +1,114 @@
+[
+  {
+    "id": "p_dmg_1",
+    "name": "子弹强化",
+    "desc": "+1 基础伤害",
+    "rarity": "common",
+    "weight": 1,
+    "maxStack": 5,
+    "effects": [{ "kind": "addDamage", "value": 1 }]
+  },
+  {
+    "id": "p_rate_1",
+    "name": "射速强化",
+    "desc": "+1 射速",
+    "rarity": "common",
+    "weight": 1,
+    "maxStack": 5,
+    "effects": [{ "kind": "addFireRate", "value": 1 }]
+  },
+  {
+    "id": "p_hp_1",
+    "name": "护甲强化",
+    "desc": "+2 最大生命",
+    "rarity": "common",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "addMaxHp", "value": 2 }]
+  },
+  {
+    "id": "p_speed_1",
+    "name": "推进强化",
+    "desc": "+60 移动速度",
+    "rarity": "common",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "addMoveSpeed", "value": 60 }]
+  },
+  {
+    "id": "p_split_1",
+    "name": "分裂弹幕",
+    "desc": "+1 子弹数",
+    "rarity": "rare",
+    "weight": 1,
+    "maxStack": 4,
+    "effects": [{ "kind": "addBulletCount", "value": 1 }]
+  },
+  {
+    "id": "p_pierce_1",
+    "name": "穿透弹",
+    "desc": "+1 穿透",
+    "rarity": "rare",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "addPierce", "value": 1 }]
+  },
+  {
+    "id": "p_spread_1",
+    "name": "散射",
+    "desc": "+10° 弹幕散布",
+    "rarity": "rare",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "addSpread", "value": 10 }]
+  },
+  {
+    "id": "p_crit_1",
+    "name": "精准打击",
+    "desc": "+10% 暴击率",
+    "rarity": "rare",
+    "weight": 1,
+    "maxStack": 5,
+    "effects": [{ "kind": "addCritChance", "value": 0.1 }]
+  },
+  {
+    "id": "p_crit_mul",
+    "name": "致命一击",
+    "desc": "+1 暴击倍率",
+    "rarity": "epic",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "addCritMul", "value": 1 }]
+  },
+  {
+    "id": "p_dmg_mul",
+    "name": "火力爆发",
+    "desc": "+25% 伤害",
+    "rarity": "epic",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "mulDamage", "value": 0.25 }]
+  },
+  {
+    "id": "p_rate_mul",
+    "name": "极速发射",
+    "desc": "+30% 射速",
+    "rarity": "epic",
+    "weight": 1,
+    "maxStack": 3,
+    "effects": [{ "kind": "mulFireRate", "value": 0.3 }]
+  },
+  {
+    "id": "p_legend_1",
+    "name": "歼灭模式",
+    "desc": "+2 子弹数, +30° 散布, +1 穿透",
+    "rarity": "legendary",
+    "weight": 1,
+    "maxStack": 1,
+    "effects": [
+      { "kind": "addBulletCount", "value": 2 },
+      { "kind": "addSpread", "value": 30 },
+      { "kind": "addPierce", "value": 1 }
+    ]
+  }
+]

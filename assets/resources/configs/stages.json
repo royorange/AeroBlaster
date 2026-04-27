@@ -1,0 +1,26 @@
+[
+  {
+    "id": "stage_1",
+    "name": "近郊",
+    "durationSec": 35,
+    "spawnIntervalSec": [0.7, 1.2],
+    "enemyPool": ["grunt", "grunt", "weaver"],
+    "bossId": "boss_1"
+  },
+  {
+    "id": "stage_2",
+    "name": "城市上空",
+    "durationSec": 45,
+    "spawnIntervalSec": [0.5, 1.0],
+    "enemyPool": ["grunt", "weaver", "tracker", "shooter"],
+    "bossId": "boss_1"
+  },
+  {
+    "id": "stage_3",
+    "name": "前线",
+    "durationSec": 55,
+    "spawnIntervalSec": [0.4, 0.8],
+    "enemyPool": ["weaver", "tracker", "shooter", "shooter"],
+    "bossId": "boss_1"
+  }
+]
