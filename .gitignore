@@ -1,18 +1,29 @@
+#///////////////////////////
+# Cocos Creator 3.x Project
+#///////////////////////////
 library/
 temp/
 local/
 build/
-profiles/
+profiles/v2/packages/scene.json
+native/
+
+#//////////////////////////
+# NPM
+#//////////////////////////
 node_modules/
 
-.DS_Store
-*.log
-*.tmp
-
+#//////////////////////////
+# Editors
+#//////////////////////////
 .idea/
 *.iml
 .vscode/launch.json
 
+#//////////////////////////
+# OS / misc
+#//////////////////////////
+.DS_Store
+*.log
+*.tmp
 assets/**/*.meta.bak
-
-profiles/v2/packages/scene.json

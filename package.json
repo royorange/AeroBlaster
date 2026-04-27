@@ -1,8 +1,12 @@
 {
-  "name": "aero-blaster",
+  "name": "AeroBlaster",
+  "uuid": "82455ccc-2536-46ca-84e4-761d8e6c0066",
   "version": "0.1.0",
   "description": "Roguelike shoot'em up for WeChat & Douyin mini-games",
   "private": true,
+  "creator": {
+    "version": "3.8.8"
+  },
   "scripts": {
     "lint": "eslint assets/scripts --ext .ts",
     "format": "prettier --write \"assets/scripts/**/*.ts\""
