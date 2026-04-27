@@ -54,31 +54,42 @@ const DEFAULT_CONFIG: Record<PlatformType, PlatformAdConfig> = {
 };
 
 export class AdService extends Singleton<AdService> {
-  private platform!: IPlatform;
-  private config!: PlatformAdConfig;
+  private platform: IPlatform | null = null;
+  private config: PlatformAdConfig | null = null;
   private lastShownAt = new Map<AdSlot, number>();
   private rewardCount = 0;
+  private initialized = false;
 
   init(platform: IPlatform = getPlatform(), override?: Partial<PlatformAdConfig>): void {
     this.platform = platform;
     this.config = { ...DEFAULT_CONFIG[platform.type], ...(override ?? {}) };
+    this.initialized = true;
+  }
+
+  private ensureInit(): void {
+    if (!this.initialized) {
+      Logger.warn(TAG, 'lazy-init (GameApp not run yet)');
+      this.init();
+    }
   }
 
   canShow(slot: AdSlot): boolean {
-    const cd = this.config.slots[slot].cooldownMs;
+    this.ensureInit();
+    const cd = this.config!.slots[slot].cooldownMs;
     const last = this.lastShownAt.get(slot) ?? 0;
     if (cd > 0 && Date.now() - last < cd) return false;
-    if (this.isRewardSlot(slot) && this.rewardCount >= this.config.maxRewardPerSession) return false;
+    if (this.isRewardSlot(slot) && this.rewardCount >= this.config!.maxRewardPerSession) return false;
     return true;
   }
 
   async showReward(slot: AdSlot): Promise<boolean> {
+    this.ensureInit();
     if (!this.canShow(slot)) {
       Logger.warn(TAG, `slot ${slot} on cooldown or capped`);
       return false;
     }
-    const adId = this.config.slots[slot].adId;
-    const res = await this.platform.showRewardVideo(adId);
+    const adId = this.config!.slots[slot].adId;
+    const res = await this.platform!.showRewardVideo(adId);
     if (res.success) {
       this.lastShownAt.set(slot, Date.now());
       this.rewardCount += 1;
@@ -87,16 +98,19 @@ export class AdService extends Singleton<AdService> {
   }
 
   showBanner(): void {
-    this.platform.showBanner(this.config.slots.banner.adId);
+    this.ensureInit();
+    this.platform!.showBanner(this.config!.slots.banner.adId);
   }
 
   hideBanner(): void {
-    this.platform.hideBanner();
+    this.ensureInit();
+    this.platform!.hideBanner();
   }
 
   async showInterstitial(): Promise<boolean> {
+    this.ensureInit();
     if (!this.canShow('interstitial')) return false;
-    const res = await this.platform.showInterstitial(this.config.slots.interstitial.adId);
+    const res = await this.platform!.showInterstitial(this.config!.slots.interstitial.adId);
     if (res.success) this.lastShownAt.set('interstitial', Date.now());
     return res.success;
   }

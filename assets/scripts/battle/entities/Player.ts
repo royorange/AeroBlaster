@@ -16,14 +16,18 @@ export class Player extends Component implements IDamageable {
   private stats: PlayerStats = cloneStats(DEFAULT_STATS);
   private fireCooldown = 0;
   private bounds!: PlayfieldBounds;
-  private moveTarget = new Vec3();
-  private hasMoveTarget = false;
+
+  // Bind-mode input: when finger/mouse down, lock the offset between cursor and player,
+  // then on every move event set player = cursor + offset (1:1, no chase).
+  private dragOffset = new Vec3();
+  private dragging = false;
 
   init(bounds: PlayfieldBounds, stats: PlayerStats): void {
     this.bounds = bounds;
     this.stats = cloneStats(stats);
     this.alive = true;
     this.fireCooldown = 0;
+    this.dragging = false;
     this.draw();
     this.syncPosition();
   }
@@ -36,13 +40,21 @@ export class Player extends Component implements IDamageable {
     this.stats = cloneStats(s);
   }
 
-  setMoveTargetLocal(localX: number, localY: number): void {
-    this.moveTarget.set(localX, localY, 0);
-    this.hasMoveTarget = true;
+  beginDrag(localX: number, localY: number): void {
+    const cur = this.node.position;
+    this.dragOffset.set(cur.x - localX, cur.y - localY, 0);
+    this.dragging = true;
   }
 
-  clearMoveTarget(): void {
-    this.hasMoveTarget = false;
+  dragTo(localX: number, localY: number): void {
+    if (!this.dragging || !this.alive) return;
+    this.node.setPosition(localX + this.dragOffset.x, localY + this.dragOffset.y, 0);
+    this.clampToBounds();
+    this.syncPosition();
+  }
+
+  endDrag(): void {
+    this.dragging = false;
   }
 
   takeDamage(amount: number): void {
@@ -64,16 +76,7 @@ export class Player extends Component implements IDamageable {
   tick(dt: number, fireCb: (origin: Vec2) => void): void {
     if (!this.alive) return;
 
-    if (this.hasMoveTarget) {
-      const cur = this.node.position;
-      const dx = this.moveTarget.x - cur.x;
-      const dy = this.moveTarget.y - cur.y;
-      const dist = Math.hypot(dx, dy);
-      const step = this.stats.moveSpeed * dt;
-      if (dist <= step) this.node.setPosition(this.moveTarget);
-      else this.node.setPosition(cur.x + (dx / dist) * step, cur.y + (dy / dist) * step, 0);
-    }
-
+    // Position is updated synchronously by dragTo; tick only handles firing & sync.
     this.clampToBounds();
     this.syncPosition();
 

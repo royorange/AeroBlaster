@@ -1,4 +1,4 @@
-import { Color, Graphics, Label, LabelOutline, Node, UIOpacity, UITransform, Vec3 } from 'cc';
+import { Color, Graphics, Label, Node, UIOpacity, UITransform, Vec3 } from 'cc';
 
 export function makeLabel(text: string, fontSize = 28, color = Color.WHITE): Node {
   const node = new Node('Label');
@@ -10,9 +10,9 @@ export function makeLabel(text: string, fontSize = 28, color = Color.WHITE): Nod
   label.horizontalAlign = Label.HorizontalAlign.CENTER;
   label.verticalAlign = Label.VerticalAlign.CENTER;
   label.cacheMode = Label.CacheMode.BITMAP;
-  const outline = node.addComponent(LabelOutline);
-  outline.color = new Color(0, 0, 0, 200);
-  outline.width = 2;
+  label.enableOutline = true;
+  label.outlineColor = new Color(0, 0, 0, 200);
+  label.outlineWidth = 2;
   return node;
 }
 

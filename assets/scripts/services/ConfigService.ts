@@ -23,20 +23,40 @@ export interface AllConfigs {
 
 export class ConfigService extends Singleton<ConfigService> {
   private configs?: AllConfigs;
+  private loadingPromise?: Promise<AllConfigs>;
 
   async loadAll(): Promise<AllConfigs> {
-    const [enemies, perks, stages] = await Promise.all([
-      this.loadJson<EnemyConfig[]>('configs/enemies'),
-      this.loadJson<PerkConfig[]>('configs/perks'),
-      this.loadJson<StageConfig[]>('configs/stages'),
-    ]);
-    this.configs = { enemies, perks, stages };
-    Logger.info(TAG, `loaded enemies=${enemies.length} perks=${perks.length} stages=${stages.length}`);
-    return this.configs;
+    if (this.configs) return this.configs;
+    if (this.loadingPromise) return this.loadingPromise;
+    this.loadingPromise = (async () => {
+      const [enemies, perks, stages] = await Promise.all([
+        this.loadJson<EnemyConfig[]>('configs/enemies'),
+        this.loadJson<PerkConfig[]>('configs/perks'),
+        this.loadJson<StageConfig[]>('configs/stages'),
+      ]);
+      this.configs = { enemies, perks, stages };
+      Logger.info(
+        TAG,
+        `loaded enemies=${enemies.length} perks=${perks.length} stages=${stages.length}`,
+      );
+      return this.configs;
+    })();
+    return this.loadingPromise;
+  }
+
+  isReady(): boolean {
+    return !!this.configs;
+  }
+
+  whenReady(): Promise<AllConfigs> {
+    if (this.configs) return Promise.resolve(this.configs);
+    return this.loadAll();
   }
 
   get(): AllConfigs {
-    if (!this.configs) throw new Error('ConfigService.loadAll() not called');
+    if (!this.configs) {
+      throw new Error('ConfigService not ready — await ConfigService.getInstance().whenReady() first');
+    }
     return this.configs;
   }
 

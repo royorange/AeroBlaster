@@ -89,28 +89,37 @@ export class BattleManager extends Component {
   }
 
   private bindInput(): void {
-    this.playfield!.on(Node.EventType.TOUCH_START, this.onTouch, this);
-    this.playfield!.on(Node.EventType.TOUCH_MOVE, this.onTouch, this);
+    this.playfield!.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
+    this.playfield!.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
     this.playfield!.on(Node.EventType.TOUCH_END, this.onTouchEnd, this);
     this.playfield!.on(Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
   }
 
   private unbindInput(): void {
-    this.playfield!.off(Node.EventType.TOUCH_START, this.onTouch, this);
-    this.playfield!.off(Node.EventType.TOUCH_MOVE, this.onTouch, this);
+    this.playfield!.off(Node.EventType.TOUCH_START, this.onTouchStart, this);
+    this.playfield!.off(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
     this.playfield!.off(Node.EventType.TOUCH_END, this.onTouchEnd, this);
     this.playfield!.off(Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
   }
 
-  private onTouch(e: EventTouch): void {
+  private touchToLocal(e: EventTouch): Vec3 {
     const ut = this.playfield!.getComponent(UITransform)!;
     const ui = e.getUILocation();
-    const local = ut.convertToNodeSpaceAR(new Vec3(ui.x, ui.y, 0));
-    this.player.setMoveTargetLocal(local.x, local.y);
+    return ut.convertToNodeSpaceAR(new Vec3(ui.x, ui.y, 0));
+  }
+
+  private onTouchStart(e: EventTouch): void {
+    const local = this.touchToLocal(e);
+    this.player.beginDrag(local.x, local.y);
+  }
+
+  private onTouchMove(e: EventTouch): void {
+    const local = this.touchToLocal(e);
+    this.player.dragTo(local.x, local.y);
   }
 
   private onTouchEnd(): void {
-    this.player.clearMoveTarget();
+    this.player.endDrag();
   }
 
   private tickPlayer(dt: number): void {

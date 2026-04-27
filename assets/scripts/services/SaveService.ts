@@ -29,30 +29,42 @@ const DEFAULT_SAVE: SaveBlob = {
 };
 
 export class SaveService extends Singleton<SaveService> {
-  private platform!: IPlatform;
+  private platform: IPlatform | null = null;
   private cache: SaveBlob = { ...DEFAULT_SAVE };
+  private initialized = false;
 
   init(platform: IPlatform = getPlatform()): void {
     this.platform = platform;
     this.load();
+    this.initialized = true;
   }
 
   get data(): Readonly<SaveBlob> {
+    this.ensureInit();
     return this.cache;
   }
 
   update(patch: Partial<SaveBlob>): void {
+    this.ensureInit();
     this.cache = { ...this.cache, ...patch, lastPlayedAt: Date.now() };
     this.flush();
   }
 
   reset(): void {
+    this.ensureInit();
     this.cache = { ...DEFAULT_SAVE };
     this.flush();
   }
 
+  private ensureInit(): void {
+    if (!this.initialized) {
+      Logger.warn(TAG, 'lazy-init (GameApp not run yet — likely opened a non-Boot scene directly)');
+      this.init();
+    }
+  }
+
   private load(): void {
-    const raw = this.platform.getStorageSync<SaveBlob>(SAVE_KEY);
+    const raw = this.platform!.getStorageSync<SaveBlob>(SAVE_KEY);
     if (raw && typeof raw === 'object' && 'version' in raw) {
       this.cache = { ...DEFAULT_SAVE, ...raw };
     } else {
@@ -62,7 +74,7 @@ export class SaveService extends Singleton<SaveService> {
 
   private flush(): void {
     try {
-      this.platform.setStorageSync(SAVE_KEY, this.cache);
+      this.platform!.setStorageSync(SAVE_KEY, this.cache);
     } catch (e) {
       Logger.error(TAG, 'flush failed', e);
     }

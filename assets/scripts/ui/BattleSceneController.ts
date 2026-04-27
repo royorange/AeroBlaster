@@ -23,10 +23,12 @@ export class BattleSceneController extends Component {
   @property({ type: Node, tooltip: 'Overlay layer for popups' })
   overlayRoot: Node | null = null;
 
-  protected onLoad(): void {
+  protected async onLoad(): Promise<void> {
     this.ensureBindings();
     GlobalEvents.on(GameEvent.BattleEnd, this.onBattleEnd, this);
     GlobalEvents.on(GameEvent.PlayerDied, this.onPlayerDied, this);
+
+    await ConfigService.getInstance().whenReady();
 
     const run = RunManager.getInstance();
     if (run.getPhase() === 'idle' || run.getPhase() === 'finished') run.start();
