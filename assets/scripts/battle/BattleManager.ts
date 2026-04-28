@@ -26,6 +26,7 @@ export class BattleManager extends Component {
   private collision = new CollisionSystem();
   private spawn!: SpawnSystem;
   private bounds!: PlayfieldBounds;
+  private visibleBounds!: PlayfieldBounds;
   private rng = new Random();
   private playerStats: PlayerStats = cloneStats(DEFAULT_STATS);
   private stage!: StageConfig;
@@ -41,11 +42,14 @@ export class BattleManager extends Component {
       return;
     }
     const ut = this.playfield.getComponent(UITransform)!;
-    // Bounds: enemies/bullets only despawn when offscreen, keep generous padding.
-    // Spawn area is intentionally tighter (no padding) so enemies enter fully visible.
+    // Two bounds:
+    //  - bounds (padded 50px): "is offscreen?" check for despawning bullets/enemies
+    //  - visibleBounds (exact size): visual edges, used to clamp the player and as
+    //    reference for AI/spawn safe zones.
     const w = ut.contentSize.width;
     const h = ut.contentSize.height;
     this.bounds = makeBounds(w, h, 50);
+    this.visibleBounds = makeBounds(w, h, 0);
     this.rng = new Random(seed);
     this.playerStats = cloneStats(stats);
     this.stage = stage;
@@ -107,9 +111,9 @@ export class BattleManager extends Component {
     const node = new Node('Player');
     this.playfield!.addChild(node);
     node.addComponent(UITransform);
-    node.setPosition(0, this.bounds.bottom + 120, 0);
+    node.setPosition(0, this.visibleBounds.bottom + 120, 0);
     this.player = node.addComponent(Player);
-    this.player.init(this.bounds, this.playerStats);
+    this.player.init(this.visibleBounds, this.playerStats);
   }
 
   private bindInput(): void {
