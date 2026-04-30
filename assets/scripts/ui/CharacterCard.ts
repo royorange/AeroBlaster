@@ -43,29 +43,39 @@ export function makeCharacterCard(opts: CharacterCardOptions): CharacterCardHand
   const bg = root.addComponent(Graphics);
   drawCardFrame(bg, opts.width, opts.height, themeColor, dimColor, false);
 
-  // 立绘
-  const portraitSize = Math.min(opts.width - 40, opts.height * 0.5);
+  // 垂直布局：从上往下分四区
+  //   - 顶部色横条（已在 drawCardFrame 里画）
+  //   - 立绘（约占卡片高度 45%）
+  //   - codename 英文小标题
+  //   - name 中文大标题
+  //   - tagline 简介（自动换行）
+  // 用相对 y 坐标避免硬编码
+
+  // 立绘：略上移给底部文字留空间
+  const portraitSize = Math.min(opts.width - 36, opts.height * 0.45);
   const portrait = makeImage({
     width: portraitSize,
     height: portraitSize,
     resourcePath: opts.classDef.spritePath,
   });
-  setPos(portrait, 0, opts.height * 0.12);
+  setPos(portrait, 0, opts.height * 0.16);
   root.addChild(portrait);
 
   // 英文 codename（小副标题，主题色）
-  const codename = makeLabel(opts.classDef.codename, 22, themeColor);
-  setPos(codename, 0, -opts.height * 0.18);
+  const codename = makeLabel(opts.classDef.codename, 18, themeColor);
+  setPos(codename, 0, -opts.height * 0.13);
   root.addChild(codename);
 
-  // 中文名（大标题，白色）
-  const name = makeLabel(opts.classDef.name, 44, new Color(255, 255, 255, 255));
-  setPos(name, 0, -opts.height * 0.28);
+  // 中文名（大标题，白色）— 字号根据字数自适应
+  const nameFontSize = opts.classDef.name.length >= 4 ? 32 : 40;
+  const name = makeLabel(opts.classDef.name, nameFontSize, new Color(255, 255, 255, 255));
+  setPos(name, 0, -opts.height * 0.24);
   root.addChild(name);
 
-  // 一句话 tagline
-  const tagline = makeLabel(opts.classDef.tagline, 18, new Color(220, 220, 220, 255));
-  setPos(tagline, 0, -opts.height * 0.4);
+  // tagline 简介（小字，自动换行）— 在 ` · ` 处拆成两行避免溢出
+  const taglineText = wrapTagline(opts.classDef.tagline);
+  const tagline = makeLabel(taglineText, 13, new Color(200, 200, 200, 255));
+  setPos(tagline, 0, -opts.height * 0.38);
   root.addChild(tagline);
 
   // 触摸交互
@@ -114,6 +124,17 @@ function drawCardFrame(
   g.strokeColor = selected ? themeColor : dimColor;
   g.rect(-w / 2, -h / 2, w, h);
   g.stroke();
+}
+
+/**
+ * 把 tagline 在 `·` 处拆行。约定 tagline 格式为 "前段 · 后段"，
+ * 拆成两行后视觉密度更平衡，也避免单行溢出卡片宽度。
+ */
+function wrapTagline(text: string): string {
+  const sep = ' · ';
+  const idx = text.indexOf(sep);
+  if (idx < 0) return text;
+  return text.substring(0, idx) + '\n' + text.substring(idx + sep.length);
 }
 
 function darken(c: Color, factor: number): Color {

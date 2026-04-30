@@ -73,7 +73,7 @@ export interface PlayerClassDef {
 export const CLASS_DEFS: Record<PlayerClass, PlayerClassDef> = {
   [PlayerClass.Inferno]: {
     id: PlayerClass.Inferno,
-    name: '烈焰',
+    name: '猩红游侠',
     codename: 'INFERNO',
     tagline: '紧凑的火焰炮艇 · 散射压制',
     spritePath: 'arts/characters/inferno_base',
@@ -82,7 +82,7 @@ export const CLASS_DEFS: Record<PlayerClass, PlayerClassDef> = {
   },
   [PlayerClass.Tempest]: {
     id: PlayerClass.Tempest,
-    name: '风暴',
+    name: '守望者',
     codename: 'TEMPEST',
     tagline: '紫色晶体战机 · 链式雷霆',
     spritePath: 'arts/characters/tempest_base',
@@ -91,7 +91,7 @@ export const CLASS_DEFS: Record<PlayerClass, PlayerClassDef> = {
   },
   [PlayerClass.Bastion]: {
     id: PlayerClass.Bastion,
-    name: '堡垒',
+    name: '黑曜堡垒',
     codename: 'BASTION',
     tagline: '攻城炮舰 · 充能轨道炮',
     spritePath: 'arts/characters/bastion_base',
