@@ -3,7 +3,15 @@ import { GameEvent, GlobalEvents } from '../core/EventBus';
 import { Logger } from '../core/Logger';
 import { Random } from '../core/Random';
 import { Faction } from '../data/BattleTypes';
-import { cloneStats, DEFAULT_STATS, PlayerStats } from '../data/PlayerData';
+import {
+  cloneStats,
+  DEFAULT_CLASS,
+  DEFAULT_STATS,
+  getClassDef,
+  PlayerClass,
+  PlayerClassDef,
+  PlayerStats,
+} from '../data/PlayerData';
 import { ConfigService, StageConfig } from '../services/ConfigService';
 import { AIBase, BossAI, SineAI, StraightAI, TrackerAI } from './ai/AIBase';
 import { Bullet } from './entities/Bullet';
@@ -29,6 +37,7 @@ export class BattleManager extends Component {
   private visibleBounds!: PlayfieldBounds;
   private rng = new Random();
   private playerStats: PlayerStats = cloneStats(DEFAULT_STATS);
+  private playerClassDef: PlayerClassDef = getClassDef(DEFAULT_CLASS);
   private stage!: StageConfig;
   private running = false;
   private result: 'win' | 'lose' | null = null;
@@ -36,7 +45,12 @@ export class BattleManager extends Component {
   private score = 0;
   private coins = 0;
 
-  startRun(stage: StageConfig, stats: PlayerStats, seed?: number): void {
+  startRun(
+    stage: StageConfig,
+    stats: PlayerStats,
+    classDef?: PlayerClassDef,
+    seed?: number,
+  ): void {
     if (!this.playfield) {
       Logger.error('BattleManager', 'playfield node not assigned in scene');
       return;
@@ -52,6 +66,7 @@ export class BattleManager extends Component {
     this.visibleBounds = makeBounds(w, h, 0);
     this.rng = new Random(seed);
     this.playerStats = cloneStats(stats);
+    this.playerClassDef = classDef ?? getClassDef(DEFAULT_CLASS);
     this.stage = stage;
     this.score = 0;
     this.coins = 0;
@@ -113,7 +128,7 @@ export class BattleManager extends Component {
     node.addComponent(UITransform);
     node.setPosition(0, this.visibleBounds.bottom + 120, 0);
     this.player = node.addComponent(Player);
-    this.player.init(this.visibleBounds, this.playerStats);
+    this.player.init(this.visibleBounds, this.playerStats, this.playerClassDef);
   }
 
   private bindInput(): void {

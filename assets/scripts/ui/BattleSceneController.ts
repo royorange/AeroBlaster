@@ -36,7 +36,7 @@ export class BattleSceneController extends Component {
     const stage = run.getCurrentStage();
     if (!stage) return;
     AnalyticsService.getInstance().track({ name: 'run_start', stageId: stage.id });
-    this.battle?.startRun(stage, run.getStats());
+    this.battle?.startRun(stage, run.getStats(), run.getPlayerClassDef());
     this.refreshHud();
     this.schedule(this.refreshHud, 0.1);
   }
@@ -139,7 +139,7 @@ export class BattleSceneController extends Component {
         run.pickPerk(p);
         run.advanceStage();
         const stage = run.getCurrentStage();
-        this.battle!.startRun(stage, run.getStats());
+        this.battle!.startRun(stage, run.getStats(), run.getPlayerClassDef());
       },
       async () => {
         const ok = await AdService.getInstance().showReward('rerollPerk');

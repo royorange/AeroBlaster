@@ -1,18 +1,38 @@
-import { _decorator, Color, Component, Graphics, Node, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, Sprite, SpriteFrame, UITransform, Vec2, Vec3 } from 'cc';
+import { Logger } from '../../core/Logger';
 import { GameEvent, GlobalEvents } from '../../core/EventBus';
-import { cloneStats, DEFAULT_STATS, PlayerStats } from '../../data/PlayerData';
+import {
+  cloneStats,
+  DEFAULT_CLASS,
+  DEFAULT_STATS,
+  getClassDef,
+  PlayerClass,
+  PlayerClassDef,
+  PlayerStats,
+} from '../../data/PlayerData';
 import { Faction, IDamageable } from '../../data/BattleTypes';
+import { ResourceService } from '../../services/ResourceService';
 import { PlayfieldBounds } from '../PlayfieldBounds';
 
 const { ccclass } = _decorator;
+const TAG = 'Player';
+
+/** sprite 渲染尺寸（视觉宽高，逻辑碰撞用 radius 控制）。 */
+const SPRITE_SIZE = 100;
+/**
+ * 碰撞半径，刻意小于 SPRITE_SIZE/2，给玩家略宽容的判定（hitbox < hurtbox）。
+ * 这是射击游戏的常见设计，提升手感。
+ */
+const COLLISION_RADIUS = 38;
 
 @ccclass('Player')
 export class Player extends Component implements IDamageable {
   faction = Faction.Player;
   alive = true;
-  radius = 18;
+  radius = COLLISION_RADIUS;
   position = new Vec2();
 
+  private classDef: PlayerClassDef = getClassDef(DEFAULT_CLASS);
   private stats: PlayerStats = cloneStats(DEFAULT_STATS);
   private fireCooldown = 0;
   private bounds!: PlayfieldBounds;
@@ -25,18 +45,30 @@ export class Player extends Component implements IDamageable {
   private invulnRemain = 0;
   private blinkAccum = 0;
 
-  init(bounds: PlayfieldBounds, stats: PlayerStats): void {
+  private sprite?: Sprite;
+
+  /**
+   * 初始化玩家。
+   * @param classDef 职业定义；若不传则使用默认职业（开发期容错）。
+   *   生产路径应总是显式传入，由 RunManager 负责选择。
+   */
+  init(bounds: PlayfieldBounds, stats: PlayerStats, classDef?: PlayerClassDef): void {
     this.bounds = bounds;
     this.stats = cloneStats(stats);
+    this.classDef = classDef ?? getClassDef(DEFAULT_CLASS);
     this.alive = true;
     this.fireCooldown = 0;
     this.dragging = false;
-    this.draw();
+    this.setupVisual();
     this.syncPosition();
   }
 
   getStats(): Readonly<PlayerStats> {
     return this.stats;
+  }
+
+  getClassDef(): Readonly<PlayerClassDef> {
+    return this.classDef;
   }
 
   setStats(s: PlayerStats): void {
@@ -124,15 +156,28 @@ export class Player extends Component implements IDamageable {
     this.position.set(p.x, p.y);
   }
 
-  private draw(): void {
-    const g = this.node.getComponent(Graphics) ?? this.node.addComponent(Graphics);
-    g.clear();
-    g.fillColor = new Color(80, 200, 255, 255);
-    g.circle(0, 0, this.radius);
-    g.fill();
-    g.fillColor = new Color(255, 255, 255, 255);
-    g.circle(0, this.radius * 0.4, this.radius * 0.3);
-    g.fill();
+  /**
+   * 配置节点尺寸 + Sprite 组件，并异步加载职业立绘。
+   * 加载失败不阻塞游戏：玩家会以"无贴图"状态继续可玩，便于诊断。
+   */
+  private setupVisual(): void {
+    const ut = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
+    ut.setContentSize(SPRITE_SIZE, SPRITE_SIZE);
+
+    const sprite = this.node.getComponent(Sprite) ?? this.node.addComponent(Sprite);
+    sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+    this.sprite = sprite;
+
+    const path = this.classDef.spritePath;
+    ResourceService.getInstance()
+      .applyToSprite(sprite, path)
+      .catch((err) => {
+        Logger.error(TAG, `failed to load sprite: ${path}`, err);
+      });
+  }
+
+  /** 测试 / 编辑器中暂未用到的 setter，保留扩展点（如热切换皮肤）。 */
+  setSpriteFrame(frame: SpriteFrame): void {
+    if (this.sprite) this.sprite.spriteFrame = frame;
   }
 }
-

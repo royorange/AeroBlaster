@@ -2,7 +2,15 @@ import { GameEvent, GlobalEvents } from '../core/EventBus';
 import { Random } from '../core/Random';
 import { Singleton } from '../core/Singleton';
 import { PerkConfig } from '../data/PerkData';
-import { cloneStats, DEFAULT_STATS, PlayerStats } from '../data/PlayerData';
+import {
+  cloneStats,
+  DEFAULT_CLASS,
+  DEFAULT_STATS,
+  getClassDef,
+  PlayerClass,
+  PlayerClassDef,
+  PlayerStats,
+} from '../data/PlayerData';
 import { ConfigService, StageConfig } from '../services/ConfigService';
 import { SaveService } from '../services/SaveService';
 import { MetaProgress } from './MetaProgress';
@@ -25,19 +33,25 @@ export class RunManager extends Singleton<RunManager> {
   private perks = new PerkSystem();
   private meta = new MetaProgress();
   private currentStats: PlayerStats = cloneStats(DEFAULT_STATS);
+  private currentClass: PlayerClass = DEFAULT_CLASS;
   private acquiredPerks: PerkConfig[] = [];
   private stageIndex = 0;
   private phase: RunPhase = 'idle';
   private lastResult: RunResult | null = null;
   private revivedThisRun = false;
 
-  start(seed?: number): void {
+  /**
+   * 启动一局新游戏。
+   * @param playerClass 玩家选择的职业；不传则沿用上一局或默认值（容错）。
+   */
+  start(playerClass?: PlayerClass, seed?: number): void {
     this.rng = new Random(seed);
     this.perks.reset();
     this.acquiredPerks = [];
     this.stageIndex = 0;
     this.revivedThisRun = false;
-    this.currentStats = cloneStats(DEFAULT_STATS);
+    if (playerClass) this.currentClass = playerClass;
+    this.currentStats = cloneStats(getClassDef(this.currentClass).baseStats);
     this.meta.applyAll(this.currentStats);
     this.phase = 'battle';
     SaveService.getInstance().update({ totalRuns: SaveService.getInstance().data.totalRuns + 1 });
@@ -45,6 +59,14 @@ export class RunManager extends Singleton<RunManager> {
 
   getStats(): Readonly<PlayerStats> {
     return this.currentStats;
+  }
+
+  getPlayerClass(): PlayerClass {
+    return this.currentClass;
+  }
+
+  getPlayerClassDef(): Readonly<PlayerClassDef> {
+    return getClassDef(this.currentClass);
   }
 
   getCurrentStage(): StageConfig {
@@ -111,7 +133,7 @@ export class RunManager extends Singleton<RunManager> {
   }
 
   private recomputeBase(): PlayerStats {
-    const base = cloneStats(DEFAULT_STATS);
+    const base = cloneStats(getClassDef(this.currentClass).baseStats);
     this.meta.applyAll(base);
     return base;
   }

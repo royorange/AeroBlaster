@@ -1,9 +1,11 @@
 import { _decorator, Component, director, game } from 'cc';
 import { Logger, LogLevel } from './core/Logger';
+import { ALL_CLASSES } from './data/PlayerData';
 import { getPlatform } from './platform/PlatformFactory';
 import { AdService } from './services/AdService';
 import { AnalyticsService } from './services/AnalyticsService';
 import { ConfigService } from './services/ConfigService';
+import { ResourceService } from './services/ResourceService';
 import { SaveService } from './services/SaveService';
 
 const { ccclass, property } = _decorator;
@@ -31,6 +33,15 @@ export class GameApp extends Component {
       Logger.info(TAG, 'configs loaded');
     } catch (e) {
       Logger.error(TAG, 'config load failed', e);
+    }
+
+    // 预加载所有职业立绘，避免选角 / 战斗首次渲染卡顿
+    try {
+      const paths = ALL_CLASSES.map((c) => c.spritePath);
+      await ResourceService.getInstance().preload(paths);
+      Logger.info(TAG, `preloaded ${paths.length} class sprites`);
+    } catch (e) {
+      Logger.error(TAG, 'sprite preload failed', e);
     }
 
     Logger.info(TAG, 'loading scene:', this.nextScene);

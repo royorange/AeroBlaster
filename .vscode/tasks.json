@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "art: rembg 抠当前文件",
+      "type": "shell",
+      "command": "rembg",
+      "args": [
+        "i",
+        "${file}",
+        "${fileDirname}/${fileBasenameNoExtension}_clean.png"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "art: rembg 批量处理目录",
+      "type": "shell",
+      "command": "for f in \"${input:rembgDir}\"/*.png; do [ -f \"$f\" ] || continue; case \"$f\" in *_clean.png|*_base.png) echo \"skip $f\"; continue;; esac; out=\"${f%.png}_clean.png\"; echo \"-> $out\"; rembg i \"$f\" \"$out\"; done",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "rembgDir",
+      "type": "promptString",
+      "description": "要批量抠图的目录（相对项目根，如 assets/arts/characters）",
+      "default": "assets/arts/characters"
+    }
+  ]
+}

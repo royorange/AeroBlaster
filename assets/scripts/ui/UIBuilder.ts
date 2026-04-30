@@ -1,4 +1,5 @@
-import { Color, Graphics, Label, Node, UIOpacity, UITransform, Vec3 } from 'cc';
+import { Color, Graphics, Label, Node, Sprite, UIOpacity, UITransform, Vec3 } from 'cc';
+import { ResourceService } from '../services/ResourceService';
 
 export function makeLabel(text: string, fontSize = 28, color = Color.WHITE): Node {
   const node = new Node('Label');
@@ -58,6 +59,37 @@ export function makePanel(width: number, height: number, color = new Color(0, 0,
 export function setPos(node: Node, x: number, y: number): Node {
   node.setPosition(new Vec3(x, y, 0));
   return node;
+}
+
+export interface ImageOptions {
+  width: number;
+  height: number;
+  resourcePath: string; // resources/ 下相对路径，不含扩展名
+}
+
+/**
+ * 创建一个图片节点。sprite 异步加载，加载失败不抛错（会在 ResourceService 内打日志）。
+ */
+export function makeImage(opts: ImageOptions): Node {
+  const node = new Node('Image');
+  const ut = node.addComponent(UITransform);
+  ut.setContentSize(opts.width, opts.height);
+  const sprite = node.addComponent(Sprite);
+  sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+  void ResourceService.getInstance().applyToSprite(sprite, opts.resourcePath);
+  return node;
+}
+
+/**
+ * 把 hex 字符串解析成 cc.Color。支持 `#RRGGBB`、`RRGGBB`、`#RRGGBBAA`。
+ */
+export function colorFromHex(hex: string, alpha = 255): Color {
+  const s = hex.replace('#', '');
+  const r = parseInt(s.substring(0, 2), 16);
+  const g = parseInt(s.substring(2, 4), 16);
+  const b = parseInt(s.substring(4, 6), 16);
+  const a = s.length >= 8 ? parseInt(s.substring(6, 8), 16) : alpha;
+  return new Color(r, g, b, a);
 }
 
 function drawRect(g: Graphics, w: number, h: number, color: Color): void {
